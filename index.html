@@ -183,14 +183,14 @@ var Game = {
 				game.state.random_start();
 				game.state.show();
 				update();
-			}, 1000);
+			}, 200);
 			function update() {
 				setTimeout(function() {
 						game.state.life_update();
 						//game.state.random_start();
 						game.state.show();
 						update();
-						}, 1000);
+						}, 200);
 			};
 
 		}
