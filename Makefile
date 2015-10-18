@@ -3,7 +3,7 @@
 CFLAGS = -Wall -std=c++11
 CC = g++
 
-TARGET = runme
+TARGET = runme.exe
 SRCS = gameOfLife.c
 OBJS = $(SRCS:.c=.o)
 

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Gaem Of Life</title>
+</head>
+<body bgcolor="black"> 
+<canvas id="canvas" width="1000" height="1000">
+	This text is displayed if your browser does not support HTML5 Canvas.
+</canvas>
+<!--<script type='text/javascript' src='script.js'></script>-->
+		<script>
+
+var DrawTool = {
+	createNew: function(context){
+		var draw_tool = {};
+		draw_tool.set_color = function(color) {
+			context.fillStyle = color;
+		}
+		draw_tool.rect = function(x,y,length,Width){
+			//context.strokeStyle = "blue";
+			context.fillRect(x,y,length,Width);
+			//context.stroke();
+		};
+		draw_tool.circle = function(x,y,r){
+			context.beginPath();
+			context.arc(x, y, r, 0, Math.PI*2, false);
+			context.lineWidth = 3;
+			//context.strokeStyle = color;
+			context.fill();
+			//context.stroke();
+		};
+		draw_tool.line = function(x1, y1, x2, y2){
+			context.beginPath();
+			//context.fillStyle = color;
+			context.lineWidth = 2;
+			context.strokeStyle = "gray";
+			context.moveTo(x1,y1);
+			context.lineTo(x2,y2);
+			context.stroke();
+		};
+		return draw_tool;
+	}
+}
+
+var Board = {
+	createNew: function(origin_left, origin_up, unit, grid_row_num, grid_column_num, draw_tool){
+		var board = {};
+		board.grid_row_num = grid_row_num;
+		board.grid_column_num = grid_column_num;
+		board.draw_tool = draw_tool;
+		board.init = function(){
+			/*
+			var row_1 = grid_row_num+1;
+			var len_column = unit * grid_column_num;
+			for(var g=0; g<row_1; ++g) {
+				var l = unit * g;
+				draw_tool.line(origin_left, origin_up + l, origin_left + len_column, origin_up + l);
+			}
+			var column_1 = grid_column_num+1;
+			var len_row = unit * grid_row_num;
+			for(var g=0; g<column_1; ++g) {
+				var l = unit * g;
+				draw_tool.line(origin_left + l, origin_up, origin_left + l, origin_up + len_row);
+			}
+			*/
+		}
+		board.draw_rect = function(x, y){
+			draw_tool.rect(origin_left + x * unit , origin_up + y * unit , unit, unit);
+		}
+		board.isInBoard = function(xx, yy){
+			var offset = unit/2;
+			return origin_left-offset < xx && xx < origin_left + unit * grid_column_num + offset && origin_up-offset < yy && yy < origin_up + unit * grid_row_num + offset ;
+		}
+		board.mapping = function(xx, yy){
+			var x = Math.round((xx - origin_left)/unit);
+			var y = Math.round((yy - origin_up)/unit);
+			return [x, y];
+		}
+		board.clear = function(){
+			draw_tool.set_color("black");
+			draw_tool.rect(origin_left, origin_up, unit * grid_column_num, unit * grid_row_num);
+		}
+		return board;
+	}
+}
+
+
+function array1d(len1){
+	var row = [];
+	for(var j=0;j<len1;++j)
+		row.push(0);
+	return row;
+}
+
+function array2d(len1, len2){
+	var row = array1d(len2);
+	var table = [];
+	for(var i=0;i<len1;++i)
+		table.push(row.slice());
+	return table;
+}
+
+var State = {
+	createNew: function(board){
+		var state = {};
+		state.table = array2d(board.grid_column_num, board.grid_row_num);
+		state.show = function(){
+			board.clear();
+			board.draw_tool.set_color("white");
+			for(var x=0; x<board.grid_column_num; ++x)
+				for(var y=0; y<board.grid_row_num; ++y)
+					if(state.table[x][y]!=0) board.draw_rect(x, y);
+		}
+		state.count_neighbors = function(i, j){
+			var start_i = (i==0) ? 0:-1;
+			var start_j = (j==0) ? 0:-1;
+			var m = board.grid_column_num;
+			var n = board.grid_row_num;
+			var end_i = (i==m-1) ? 0:1;
+			var end_j = (j==n-1) ? 0:1;
+			var sum = 0;
+			for(var ii=start_i; ii<=end_i; ++ii) {
+				for(var jj=start_j; jj<=end_j; ++jj) {
+					sum += (state.table[i+ii][j+jj]%2);
+				}
+			}
+			sum -= (state.table[i][j]%2);
+			return sum;
+		}
+		state.point_update = function(i, j){
+			var value = state.table[i][j];
+			var sum = (value - value%2)/2;
+			if(sum < 2) state.table[i][j]=0;
+			else if(sum==2) {
+				console.log([i,j]);
+				console.log(state.table[i][j]);
+				state.table[i][j] = value%2;
+			}
+			else if(sum==3) state.table[i][j] = 1;
+			else state.table[i][j] = 0;
+		}
+		state.life_update = function(){
+			var m = board.grid_column_num;
+			var n = board.grid_row_num;
+			for(var i=0; i<m; ++i){
+				for(var j=0; j<n; ++j){
+					state.table[i][j] += (state.count_neighbors(i,j)*2);
+				}
+			}
+			for(var i=0; i<m; ++i){
+				for(var j=0; j<n; ++j){
+					state.point_update(i,j);
+				}
+			}
+		}
+		state.random_start = function(){
+		/*
+			state.table[12][10] = 1;
+			state.table[10][11] = 1;
+			state.table[10][12] = 1;
+			state.table[11][12] = 1;
+			state.table[12][12] = 1;
+			*/
+			var m = board.grid_column_num;
+			var n = board.grid_row_num;
+			for(var i=0; i<m; ++i){
+				for(var j=0; j<n; ++j){
+					state.table[i][j] = (Math.random() < 0.3) ? 1 : 0;
+				}
+			}
+		}
+		return state;
+	}
+}
+
+var Game = {
+	createNew: function(canvas, board){
+		var game = {};
+		game.canvas = canvas;
+		game.state = State.createNew(board);
+		game.start = function(){
+			setTimeout(function(){
+				game.state.random_start();
+				game.state.show();
+				update();
+			}, 1000);
+			function update() {
+				setTimeout(function() {
+						game.state.life_update();
+						//game.state.random_start();
+						game.state.show();
+						update();
+						}, 1000);
+			};
+
+		}
+		return game;
+	}
+}
+
+
+var my_canvas_1 = document.getElementById("canvas");
+var draw_tool = DrawTool.createNew( my_canvas_1.getContext("2d") );
+var my_board = Board.createNew(origin_left = 60, origin_up = 70, unit = 10, grid_row_num = 40, grid_column_num = 120, draw_tool);
+my_board.init();
+game = Game.createNew(my_canvas_1, my_board);
+game.start();
+
+		</script>
+</body>
+</html>

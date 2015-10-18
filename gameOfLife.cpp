@@ -92,18 +92,19 @@ int main() {
     vector< vector<int> > board;
     board.push_back(a1);
     board.push_back(a1);
-    int time = 10;
+    int time = 2;
     while(time--){
-        int m = board.size();
-        int n = board[0].size();
-        for(int i=0; i<m; ++i) {
-            for(int j=0; j<n; ++j) {
-                cout << ' ' << board[i][j];
+    	s.gameOfLife(board);
+        for(int i=0; i<28; ++i) cout << '\n';
+        cout << "===\n";
+	int m = board.size();
+	int n = board[0].size();
+        for(int i=0; i<28; ++i) {
+            for(int j=0; j<10; ++j) {
+                cout << ' ' << ((i<m && j<n && board[i][j]==1) ? 'a' : ' ') ;
             }
             cout << '\n';
         }
         cout << "===\n";
-        s.gameOfLife(board);
     }
-    
 }
